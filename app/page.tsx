@@ -257,7 +257,7 @@ function AppCarousel({ white }: { white: boolean }) {
 
       {/* Peek: overflow visible mas clip no pai */}
       <div style={{ overflow: "hidden", margin: "0 -24px", padding: "0 24px" }}>
-        <div ref={emblaRef} style={{ overflow: "visible", cursor: "grab" }}>
+        <div ref={emblaRef} style={{ overflow: "visible", cursor: "grab", touchAction: "pan-y" }}>
           <div style={{ display: "flex", gap: 20 }}>
             {SLIDES.map((s, i) => (
               <div

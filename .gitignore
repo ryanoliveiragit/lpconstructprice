@@ -1,5 +1,6 @@
 # claude code (local config)
 .claude/
+.mcp.json
 
 # dependencies
 /node_modules

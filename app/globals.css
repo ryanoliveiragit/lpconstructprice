@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+@keyframes glitch {
+  0%, 80%, 100% {
+    text-shadow: none;
+    transform: translate(0);
+    clip-path: none;
+  }
+  81% {
+    text-shadow: -4px 0 #f97316, 4px 0 #22c55e;
+    transform: translate(3px, -1px);
+  }
+  82% {
+    text-shadow: 4px 0 #f97316, -3px 0 #22c55e;
+    transform: translate(-3px, 1px);
+  }
+  83% {
+    text-shadow: -2px 0 #fb923c;
+    transform: translate(2px, 0);
+  }
+  84% {
+    text-shadow: none;
+    transform: translate(0);
+  }
+}
+@keyframes shimmer {
+  from { transform: translateX(-100%) skewX(-20deg); }
+  to   { transform: translateX(220%) skewX(-20deg); }
+}
+@keyframes ping-slow {
+  0%    { transform: scale(1);   opacity: 0.7; }
+  100%  { transform: scale(2.4); opacity: 0; }
+}
+
+.animate-fadeUp   { animation: fadeUp 0.4s cubic-bezier(.22,1,.36,1) both; }
+.animate-blink    { animation: blink 1s step-end infinite; }
+.animate-pulse    { animation: pulse 2s ease-in-out infinite; }
+.animate-marquee  { animation: marquee 30s linear infinite; }
+.animate-glitch   { animation: glitch 7s ease-in-out infinite; }
+.animate-shimmer  { animation: shimmer 2.2s ease-in-out infinite; }
+.animate-ping-slow{ animation: ping-slow 1.8s cubic-bezier(0,0,0.2,1) infinite; }
+
+@keyframes skeletonShimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, #1c1c1c 0%, #2e2e2e 50%, #1c1c1c 100%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.8s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+html { scroll-behavior: smooth; }

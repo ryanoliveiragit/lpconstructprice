@@ -137,12 +137,17 @@ function BrowserFrame({
 
 // ── TiltCard ──────────────────────────────────────────────────
 function TiltCard({ children, className }: { children: React.ReactNode; className?: string }) {
+  const [isTouch] = useState(() => typeof window !== "undefined" && window.matchMedia("(hover: none)").matches);
   const mx = useMotionValue(0);
   const my = useMotionValue(0);
   const sx = useSpring(mx, { stiffness: 160, damping: 20 });
   const sy = useSpring(my, { stiffness: 160, damping: 20 });
   const rotateX = useTransform(sy, [-0.5, 0.5], [5, -5]);
   const rotateY = useTransform(sx, [-0.5, 0.5], [-5, 5]);
+
+  if (isTouch) {
+    return <div className={`relative ${className ?? ""}`}>{children}</div>;
+  }
 
   function onMove(e: React.MouseEvent<HTMLDivElement>) {
     const r = e.currentTarget.getBoundingClientRect();
@@ -1036,7 +1041,7 @@ export default function Home() {
   return (
     <ThemeContext.Provider value={C}>
     <div style={{ background: C.bg, color: C.text, fontFamily: "'Inter', sans-serif",
-      transition: "background 0.3s, color 0.3s" }}>
+      transition: "background 0.3s, color 0.3s", touchAction: "pan-y" }}>
       <Navbar white={white} onToggle={() => setWhite(w => !w)} />
 
       {/* ══ HERO ══════════════════════════════════════════════════ */}

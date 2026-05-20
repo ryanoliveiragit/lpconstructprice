@@ -9,8 +9,9 @@ import { useTheme } from "../lib/ThemeContext";
 
 const TAU = Math.PI * 2;
 const GOLDEN = Math.PI * (3 - Math.sqrt(5));
-const NUM_DOTS = 1200;
-const NUM_PARTICLES = 60;
+const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+const NUM_DOTS = isMobile ? 350 : 1200;
+const NUM_PARTICLES = isMobile ? 15 : 60;
 
 // orange accent RGB from C.or (#f97316)
 const OR = 249, OG = 115, OB = 22;
@@ -126,8 +127,11 @@ function GlobeCanvas({ metricsLatency }: { metricsLatency: number }) {
       if (canvas) canvas.style.cursor = "grab";
     }
 
-    // ── Touch drag ──
+    // ── Touch drag (desktop-only — on mobile let the globe auto-spin, preserve scroll) ──
+    const isTouch = window.matchMedia("(hover: none)").matches;
+
     function onTouchStart(e: TouchEvent) {
+      if (isTouch) return;
       const st = stateRef.current;
       st.isDragging = true;
       st.lastX = e.touches[0].clientX;
@@ -136,6 +140,7 @@ function GlobeCanvas({ metricsLatency }: { metricsLatency: number }) {
       st.vTilt = 0;
     }
     function onTouchMove(e: TouchEvent) {
+      if (isTouch) return;
       e.preventDefault();
       const st = stateRef.current;
       if (!st.isDragging) return;
@@ -155,14 +160,24 @@ function GlobeCanvas({ metricsLatency }: { metricsLatency: number }) {
     canvas.addEventListener("mousedown", onMouseDown);
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseup", onMouseUp);
-    canvas.addEventListener("touchstart", onTouchStart, { passive: false });
-    window.addEventListener("touchmove", onTouchMove, { passive: false });
-    window.addEventListener("touchend", onTouchEnd);
-    canvas.style.cursor = "grab";
+    if (!isTouch) {
+      canvas.addEventListener("touchstart", onTouchStart, { passive: true });
+      canvas.addEventListener("touchmove", onTouchMove, { passive: false });
+      canvas.addEventListener("touchend", onTouchEnd);
+    }
+    canvas.style.cursor = isTouch ? "default" : "grab";
 
-    // ── Draw loop ──
-    function draw() {
+    // ── Draw loop (throttled to 30fps on touch devices) ──
+    let lastFrameTime = 0;
+    const frameInterval = isTouch ? 1000 / 30 : 0;
+
+    function draw(timestamp = 0) {
       if (!canvas || !ctx) return;
+      if (frameInterval > 0 && timestamp - lastFrameTime < frameInterval) {
+        rafRef.current = requestAnimationFrame(draw);
+        return;
+      }
+      lastFrameTime = timestamp;
       const W = canvas.width, H = canvas.height;
       const cx = W / 2, cy = H / 2;
       const R = Math.min(W, H) * 0.37;
@@ -327,16 +342,18 @@ function GlobeCanvas({ metricsLatency }: { metricsLatency: number }) {
       rafRef.current = requestAnimationFrame(draw);
     }
 
-    rafRef.current = requestAnimationFrame(draw);
+    rafRef.current = requestAnimationFrame((ts) => draw(ts));
     return () => {
       cancelAnimationFrame(rafRef.current);
       ro.disconnect();
       canvas.removeEventListener("mousedown", onMouseDown);
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("mouseup", onMouseUp);
-      canvas.removeEventListener("touchstart", onTouchStart);
-      window.removeEventListener("touchmove", onTouchMove);
-      window.removeEventListener("touchend", onTouchEnd);
+      if (!isTouch) {
+        canvas.removeEventListener("touchstart", onTouchStart);
+        canvas.removeEventListener("touchmove", onTouchMove);
+        canvas.removeEventListener("touchend", onTouchEnd);
+      }
     };
   }, []);
 
@@ -354,6 +371,7 @@ export default function GlobeSection() {
   });
 
   useEffect(() => {
+    const interval = typeof window !== "undefined" && window.matchMedia("(hover: none)").matches ? 2500 : 800;
     const iv = setInterval(() => {
       setMetrics(prev => ({
         latency: 72 + Math.floor(Math.random() * 110),
@@ -361,7 +379,7 @@ export default function GlobeSection() {
         stores: 23,
         scanPct: (prev.scanPct + (Math.random() > 0.55 ? 1 : 0)) % 100,
       }));
-    }, 800);
+    }, interval);
     return () => clearInterval(iv);
   }, []);
 
